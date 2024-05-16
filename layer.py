@@ -31,6 +31,7 @@ class Layer:
         else: self.activation = Layer._activation_functions[kwargs["activation"]]
 
         self.weights = None
+        self.bias = 0 #make bias
 
     #Creates weight's matrix
     def create_weights_matrix(self,**kwargs):
@@ -44,5 +45,9 @@ class Layer:
 
         if len(X.shape) != 1: X = X.reshape((self.weights.shape[1]))
 
-        return self.activation(np.matmul(self.weights, X))
+        return self.activation(np.matmul(self.weights, X) + self.bias)
 
+    #Ask Mr. Pięta about it
+    def learn(self,prev_a,loss):
+        #              nxm            m*1       1xn
+        self.weights = self.weights + prev_a*loss.T
