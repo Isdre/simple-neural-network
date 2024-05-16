@@ -16,7 +16,7 @@ class Layer:
     def __gelu(x):
         return 0.5 * x * (1 + np.tanh(math.sqrt(2 / np.pi) * (x + 0.044715 * np.power(x, 3))))
 
-    _activation_functions = {"linear" : __linear,
+    __activation_functions = {"linear" : __linear,
                              "relu" : __relu,
                              "gelu" : __gelu}
 
@@ -27,8 +27,8 @@ class Layer:
         self.input_shape = set(kwargs["input_shape"])
 
         if kwargs["activation"] is None: raise Exception("Require to receive activation function")
-        elif kwargs["activation"] not in Layer._activation_functions.keys(): raise Exception(f"Doesn't recognize \"{kwargs['activation']}\" as a activation function")
-        else: self.activation = Layer._activation_functions[kwargs["activation"]]
+        elif kwargs["activation"] not in Layer.__activation_functions.keys(): raise Exception(f"Doesn't recognize \"{kwargs['activation']}\" as a activation function")
+        else: self.activation = Layer.__activation_functions[kwargs["activation"]]
 
         self.weights = None
         self.bias = 0 #make bias
@@ -49,5 +49,8 @@ class Layer:
 
     #Ask Mr. Pięta about it
     def learn(self,prev_a,loss):
-        #              nxm            m*1       1xn
-        self.weights = self.weights + prev_a*loss.T
+        #     mx1      1xn
+        a_i = prev_a * loss.T
+        #              nxm            mxn
+        self.weights = self.weights + a_i
+        return np.mean(a_i,axis=0)
