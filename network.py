@@ -6,6 +6,8 @@ from layer import Layer
 
 class Network:
     def __square_error(y_pred,y_true):
+        y_true = np.clip(y_true, -1e10, 1e10)
+        y_pred = np.clip(y_pred, -1e10, 1e10)
         return np.square(y_pred - y_true)
 
     def __absolute_error(y_pred, y_true):
@@ -39,7 +41,7 @@ class Network:
     def add(self,layer: Layer):
         self.layers.append(layer)
         if len(self.layers) != 1:
-            self.layers[-1].create_weights_matrix(input_shape=self.layers[-1].weights.shape[0])
+            self.layers[-1].create_weights_matrix(input_shape=[self.layers[-2].weights.shape[0]])
         else:
             self.layers[-1].create_weights_matrix()
 
@@ -49,11 +51,11 @@ class Network:
         if metric not in Network.__metrics.keys(): raise Exception(f"Doesn't recognize \"{metric}\" as a metric")
         else: self.metric = Network.__metrics[metric]
 
-        self.__compare_metric = Network.__compare_metrics[self.metric]
+        self.__compare_metric = Network.__compare_metrics[metric]
 
     def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
-
+        print("Creating validation data")
         if validation_data is None and validation_split == 0.0:
             X_val = X
             y_val = y
@@ -69,33 +71,42 @@ class Network:
         else:
             raise Exception("validation_data is not None and validation_target is None")
 
-
+        print("Created validation data")
         best = self.get_weights()
         best_metric = self.metric(self.predict(X_val),y_val)
 
         for i in range(epochs):
+            print(f"Starting {i}th epoch")
             a = []
             for data,target in zip(X_train,y_train):
                 a_0 = data
                 a_1 = None
+                print("Sample")
 
                 for layer in self.layers:
+                    print(layer.weights.shape)
                     a.append(a_0)
                     a_1 = layer.calc(a_0)
                     a_0 = a_1
 
                 c = self.cost(a_1,target)
-
+                print("Backpropagation")
                 for layer in reversed(self.layers):
+                    print(c.shape)
                     c = layer.learn(a[-1],c)
                     a.pop(-1)
 
             actual_metric = self.metric(self.predict(X_val),y_val)
+            print(f"Ended epoch: {self.metric.__name__}: {actual_metric}")
             if self.__compare_metric(best_metric,actual_metric):
                 best = self.get_weights()
 
+        for w,layer in zip(best,self.layers):
+            layer.weights = w
+
     def predict(self,X):
-        y_pred = np.array([])
+        y_pred = []
+
         for x in X:
             a_0 = x
             a_1 = None
@@ -104,9 +115,11 @@ class Network:
                 a_1 = layer.calc(a_0)
                 a_0 = a_1
 
-            y_pred = np.vstack([y_pred, a_1])
+            y = np.argmax(a_1)
 
-        return y_pred
+            y_pred.append(y)
+
+        return np.array(y_pred)
 
     def get_weights(self):
         w = []
