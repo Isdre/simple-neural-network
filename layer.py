@@ -26,7 +26,7 @@ class Layer:
         if input_shape is None:
             self.input_shape = None
         else:
-            self.input_shape = set(input_shape)
+            self.input_shape = list(input_shape)
 
         if activation is None: raise Exception("Require to receive activation function")
         elif activation not in Layer.__activation_functions.keys(): raise Exception(f"Doesn't recognize \"{activation}\" as a activation function")
@@ -38,17 +38,15 @@ class Layer:
     #Creates weight's matrix
     def create_weights_matrix(self,input_shape=None):
         if self.input_shape is None and input_shape is None: raise Exception("Unknown input's shape")
-        elif input_shape is not None: self.input_shape = set(input_shape)
+        elif input_shape is not None: self.input_shape = list(input_shape)
+
         self.weights = np.random.normal(size=(self.neurons_count, reduce(lambda x,y: x*y,self.input_shape)))
 
     #Returns activation_function(weights * X)
     def calc(self,X:numpy.array):
-        if set(X.shape) != self.input_shape: raise Exception("Incorrect X's shape")
+        if list(X.shape) != self.input_shape: raise Exception("Incorrect X's shape")
 
-        if len(X.shape) != 1: X = X.reshape((self.weights.shape[1]))
-
-        print(X.shape)
-        print(self.weights.shape)
+        X = X.flatten()
 
         return self.activation(np.clip(np.matmul(self.weights, X), -1e10, 1e10))
 
@@ -56,8 +54,6 @@ class Layer:
     def learn(self,prev_a,loss):
         #              nx1  mx1
         a_i = np.outer(loss,prev_a)
-        print(f"{prev_a.shape} {loss.shape}")
-        print(self.weights.shape)
         #              nxm            mxn
         self.weights = self.weights + a_i
         return np.mean(a_i,axis=0)

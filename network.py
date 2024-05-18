@@ -55,6 +55,16 @@ class Network:
 
     def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
+        #Prepare y's values
+        num_classes = max(y) + 1
+
+        target = np.zeros((len(y), num_classes))
+
+        for idx, label in enumerate(y):
+            target[idx, label] = 1
+
+        y = target
+
         print("Creating validation data")
         if validation_data is None and validation_split == 0.0:
             X_val = X
@@ -73,53 +83,62 @@ class Network:
 
         print("Created validation data")
         best = self.get_weights()
-        best_metric = self.metric(self.predict(X_val),y_val)
+        best_metric = self.metric(self.soft_predict(X_val),y_val)
 
         for i in range(epochs):
-            print(f"Starting {i}th epoch")
+            print(f"Starting {i+1}th epoch")
             a = []
             for data,target in zip(X_train,y_train):
                 a_0 = data
                 a_1 = None
-                print("Sample")
 
                 for layer in self.layers:
-                    print(layer.weights.shape)
                     a.append(a_0)
                     a_1 = layer.calc(a_0)
                     a_0 = a_1
 
                 c = self.cost(a_1,target)
-                print("Backpropagation")
                 for layer in reversed(self.layers):
-                    print(c.shape)
                     c = layer.learn(a[-1],c)
                     a.pop(-1)
 
-            actual_metric = self.metric(self.predict(X_val),y_val)
-            print(f"Ended epoch: {self.metric.__name__}: {actual_metric}")
+            actual_metric = self.metric(self.soft_predict(X_val),y_val)
+            print(f"Ended {i+1}th epoch: {self.metric.__name__}: {actual_metric}")
             if self.__compare_metric(best_metric,actual_metric):
                 best = self.get_weights()
 
         for w,layer in zip(best,self.layers):
             layer.weights = w
 
-    def predict(self,X):
+    def soft_predict(self,X):
         y_pred = []
 
-        for x in X:
-            a_0 = x
+        if self.layers[0].input_shape == list(X.shape):
+            a_0 = X
             a_1 = None
 
             for layer in self.layers:
                 a_1 = layer.calc(a_0)
                 a_0 = a_1
 
-            y = np.argmax(a_1)
+            y_pred.append(a_1)
+        else:
+            for x in X:
+                a_0 = x
+                a_1 = None
 
-            y_pred.append(y)
+                for layer in self.layers:
+                    a_1 = layer.calc(a_0)
+                    a_0 = a_1
+
+                y_pred.append(a_1)
 
         return np.array(y_pred)
+
+    def hard_predict(self,X):
+        y_pred = self.soft_predict(X)
+
+        return np.argmax(y_pred)
 
     def get_weights(self):
         w = []
