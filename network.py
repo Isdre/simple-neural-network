@@ -102,7 +102,7 @@ class Network:
                     c = layer.learn(a[-1],c)
                     a.pop(-1)
 
-            actual_metric = self.metric(self.soft_predict(X_val),y_val)
+            actual_metric = self.metric(self.hard_predict(X_val),y_val)
             print(f"Ended {i+1}th epoch: {self.metric.__name__}: {actual_metric}")
             if self.__compare_metric(best_metric,actual_metric):
                 best = self.get_weights()

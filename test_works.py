@@ -18,8 +18,9 @@ def test_digit_works():
     network.add(Layer(neurons_count=10, activation="relu"))
     network.compile(cost="squared_error",metric="accuracy")
 
-    network.fit(X_train,y_train)
-    network.hard_predict(X_test[0])
+    network.fit(X_train,y_train,epochs=3)
+    print(network.hard_predict(X_test[0]))
+    print(y_test[0])
 
 def test_iris_works():
     pass
