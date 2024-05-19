@@ -5,15 +5,11 @@ from layers import Layer
 
 
 class Network:
-    def __square_error(y_pred,y_true):
-        return np.square(np.round(y_pred - y_true,decimals=3))
+    def __mean_squared_error(y_pred,y_true):
+        return np.mean(np.square(np.round(y_pred - y_true,decimals=3)))
 
-    def __absolute_error(y_pred, y_true):
-        return np.abs(y_pred - y_true)
-
-    __costs = {
-        "squared_error": __square_error,
-        "absolute_error": __absolute_error,
+    __losses = {
+        "mean_squared_error": __mean_squared_error,
     }
 
     def __accuracy(y_pred, y_true):
@@ -33,7 +29,7 @@ class Network:
 
     def __init__(self):
         self.layers = []
-        self.cost = None
+        self.loss = None
         self.metric = None
 
     def add(self,layer: Layer):
@@ -43,9 +39,9 @@ class Network:
         else:
             self.layers[-1].create_weights_matrix()
 
-    def compile(self,cost,metric):
-        if cost not in Network.__costs.keys(): raise Exception(f"Doesn't recognize \"{cost}\" as a cost")
-        else: self.cost = Network.__costs[cost]
+    def compile(self,loss,metric):
+        if loss not in Network.__losses.keys(): raise Exception(f"Doesn't recognize \"{loss}\" as a cost")
+        else: self.loss = Network.__losses[loss]
         if metric not in Network.__metrics.keys(): raise Exception(f"Doesn't recognize \"{metric}\" as a metric")
         else: self.metric = Network.__metrics[metric]
 
@@ -95,7 +91,7 @@ class Network:
                     a_1 = layer.calc(a_0)
                     a_0 = a_1
 
-                c = self.cost(a_1,target)
+                c = self.loss(a_1,target)
                 for layer in reversed(self.layers):
                     c = layer.learn(a[-1],c)
                     a.pop(-1)

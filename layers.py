@@ -48,7 +48,7 @@ class Layer:
 
         X = X.flatten()
 
-        return self.activation(np.clip(np.matmul(self.weights, X), -1e10, 1e10))
+        return self.activation(np.round(np.matmul(self.weights, X), decimals=3))
 
     #Ask Mr. Pięta about it
     def learn(self,prev_a,loss):

@@ -15,7 +15,7 @@ def test_digit_tensorflow():
     network = Network()
     network.add(Layer(neurons_count=128,activation="relu",input_shape=[28,28]))
     network.add(Layer(neurons_count=10, activation="relu"))
-    network.compile(cost="squared_error",metric="accuracy")
+    network.compile(loss="mean_squared_error",metric="accuracy")
 
     network.fit(X_train,y_train,epochs=3, validation_split=0.1)
 
