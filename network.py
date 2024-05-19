@@ -8,8 +8,11 @@ class Network:
     def __mean_squared_error(y_pred,y_true):
         return np.mean(np.square(np.round(y_pred - y_true,decimals=3)))
 
+    def __mean_squared_error_derivative(y_pred,y_true):
+        return np.mean(2*(np.round(y_pred - y_true,decimals=3)))
+
     __losses = {
-        "mean_squared_error": __mean_squared_error,
+        "mean_squared_error": [__mean_squared_error,__mean_squared_error_derivative]
     }
 
     def __accuracy(y_pred, y_true):
@@ -27,10 +30,17 @@ class Network:
         "accuracy": __compare_accuracy,
     }
 
+    def __start(x):
+        return x
+
     def __init__(self):
         self.layers = []
         self.loss = None
         self.metric = None
+        self.derivatives_weights = None
+        self.derivatives_bias = None
+        self.derivatives_previous = None
+        self.functions = None
 
     def add(self,layer: Layer):
         self.layers.append(layer)
@@ -41,13 +51,41 @@ class Network:
 
     def compile(self,loss,metric):
         if loss not in Network.__losses.keys(): raise Exception(f"Doesn't recognize \"{loss}\" as a cost")
-        else: self.loss = Network.__losses[loss]
+        else:
+            self.loss = Network.__losses[loss][0]
+            self.loss_derivative = Network.__losses[loss][1]
         if metric not in Network.__metrics.keys(): raise Exception(f"Doesn't recognize \"{metric}\" as a metric")
         else: self.metric = Network.__metrics[metric]
 
         self.__compare_metric = Network.__compare_metrics[metric]
 
-    def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None):
+        self.functions = [] * (len(self.layers) + 1)
+        self.functions[0] = Network.__start
+
+        for i,layer in enumerate(self.layers):
+            self.functions[i+1] = lambda x: layer.activation(layer.weights * self.functions[i](x) + layer.bias)
+
+        self.derivatives_bias = [] * (len(self.layers) + 1)
+        self.derivatives_bias[0] = Network.__start
+
+        for i, layer in enumerate(self.layers):
+            self.derivatives_bias[i + 1] = lambda x: layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
+
+        self.derivatives_previous = [] * (len(self.layers) + 1)
+        self.derivatives_previous[0] = Network.__start
+
+        for i, layer in enumerate(self.layers):
+            self.derivatives_previous[i + 1] = lambda x: layer.weights * layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
+
+        self.derivatives_weights = [] * (len(self.layers) + 1)
+        self.derivatives_weights[0] = Network.__start
+
+        for i,layer in enumerate(self.layers):
+            self.derivatives_weights[i+1] = lambda x: self.functions[i](x) * layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
+
+
+
+    def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None,learning_rate=0.01):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -75,73 +113,3 @@ class Network:
         else:
             raise Exception("validation_data is not None and validation_target is None")
 
-        print("Created validation data")
-        best = self.get_weights()
-        best_metric = self.metric(self.soft_predict(X_val),y_val)
-
-        for i in range(epochs):
-            print(f"Starting {i+1}th epoch")
-            a = []
-            for data,target in zip(X_train,y_train):
-                a_0 = data
-                a_1 = None
-
-                for layer in self.layers:
-                    a.append(a_0)
-                    a_1 = layer.calc(a_0)
-                    a_0 = a_1
-
-                c = self.loss(a_1,target)
-                for layer in reversed(self.layers):
-                    c = layer.learn(a[-1],c)
-                    a.pop(-1)
-
-            actual_metric = self.metric(self.hard_predict(X_val),y_val)
-            print(f"Ended {i+1}th epoch: {self.metric.__name__}: {actual_metric}")
-            if self.__compare_metric(best_metric,actual_metric):
-                best = self.get_weights()
-
-        for w,layer in zip(best,self.layers):
-            layer.weights = w
-
-    def soft_predict(self,X):
-        y_pred = []
-
-        if self.layers[0].input_shape == list(X.shape):
-            a_0 = X
-            a_1 = None
-
-            for layer in self.layers:
-                a_1 = layer.calc(a_0)
-                a_0 = a_1
-
-            y_pred.append(a_1)
-        else:
-            for x in X:
-                a_0 = x
-                a_1 = None
-
-                for layer in self.layers:
-                    a_1 = layer.calc(a_0)
-                    a_0 = a_1
-
-                y_pred.append(a_1)
-
-        return np.array(y_pred)
-
-    def hard_predict(self,X):
-        y_pred = self.soft_predict(X)
-        if self.layers[0].input_shape == list(X.shape):
-            a = np.zeros(y_pred.shape)
-            a[:, np.argmax(y_pred)] = 1
-        else:
-            a = np.zeros(y_pred.shape)
-            a[:, np.argmax(y_pred, axis=1)] = 1
-        return a
-
-    def get_weights(self):
-        w = []
-        for layer in self.layers:
-            w.append(layer.weights)
-
-        return w
