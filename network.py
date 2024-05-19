@@ -1,14 +1,12 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from layer import Layer
+from layers import Layer
 
 
 class Network:
     def __square_error(y_pred,y_true):
-        y_true = np.clip(y_true, -1e10, 1e10)
-        y_pred = np.clip(y_pred, -1e10, 1e10)
-        return np.square(y_pred - y_true)
+        return np.square(np.round(y_pred - y_true,decimals=3))
 
     def __absolute_error(y_pred, y_true):
         return np.abs(y_pred - y_true)
@@ -19,7 +17,7 @@ class Network:
     }
 
     def __accuracy(y_pred, y_true):
-        return np.equal(y_pred, y_true).mean()
+        return np.all(np.equal(y_pred, y_true),axis=1).mean()
 
     __metrics = {
         "accuracy": __accuracy,
@@ -72,7 +70,7 @@ class Network:
             X_train = X
             y_train = y
         elif validation_data is None:
-            X_train,X_val,y_train,y_val = train_test_split(X,y,test_size=validation_split)
+            X_train,X_val,y_train,y_val = train_test_split(X,y,test_size=validation_split,random_state=1905)
         elif validation_target is not None:
             X_train = X
             X_val = validation_data
@@ -137,8 +135,13 @@ class Network:
 
     def hard_predict(self,X):
         y_pred = self.soft_predict(X)
-
-        return np.argmax(y_pred)
+        if self.layers[0].input_shape == list(X.shape):
+            a = np.zeros(y_pred.shape)
+            a[:, np.argmax(y_pred)] = 1
+        else:
+            a = np.zeros(y_pred.shape)
+            a[:, np.argmax(y_pred, axis=1)] = 1
+        return a
 
     def get_weights(self):
         w = []

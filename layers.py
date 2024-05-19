@@ -54,6 +54,6 @@ class Layer:
     def learn(self,prev_a,loss):
         #              nx1  mx1
         a_i = np.outer(loss,prev_a)
-        #              nxm            mxn
+        #              nxm            nxm
         self.weights = self.weights + a_i
         return np.mean(a_i,axis=0)

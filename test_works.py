@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from layer import Layer
+from layers import Layer
 from network import Network
 
 
