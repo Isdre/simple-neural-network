@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -42,13 +44,14 @@ class Network:
 
 
         #biasses derivatives
-        self.derivatives_bias[-1] = lambda x: (self.layers[-1].activation.calc_derivative(np.dot(self.layers[-1].weights, self.functions[-2](x))+self.layers[-1].bias) *
+        self.derivatives_bias[-1] = lambda x: sum(self.layers[-1].activation.calc_derivative(np.dot(self.layers[-1].weights, self.functions[-2](x))+self.layers[-1].bias) *
                                                self.loss.loss_derivative(self.functions[-1](x), self.__y).mean())
 
+
         for i in range(len(self.derivatives_bias) - 2, -1, -1):
-            self.derivatives_bias[i] = (lambda l: lambda x: self.derivatives_bias[l + 1](x) *
-                                                            self.layers[l].activation.calc_derivative(np.dot(self.layers[l].weights, self.functions[l - 1](x)) +
-                                                                                                      self.layers[l].bias))(i)
+            self.derivatives_bias[i] = (lambda l: lambda x: sum(self.derivatives_bias[l+1](x) *
+                                                            self.layers[l].activation.calc_derivative(np.dot(self.layers[l].weights, self.functions[l](x)) +
+                                                                                                      self.layers[l].bias)))(i)
 
         #weights derivatives
         self.derivatives_neurons[-1] = lambda x,i: self.layers[-1].activation.calc_derivative(x) * self.loss.loss_derivative(self.functions[-1](x), self.__y)[i]
@@ -60,11 +63,11 @@ class Network:
         for i in range(len(self.layers)):
             for j in range(self.layers[i].weights.shape[0]):
                 for k in range(self.layers[i].weights.shape[1]):
-                    self.derivatives_weights[total_weights_i] = lambda x: self.layers[i].weights[j,k] * self.derivatives_neurons[i](x,j)
+                    self.derivatives_weights[total_weights_i] = lambda x: sum(self.layers[i].weights[j,k] * self.derivatives_neurons[i](x,j))
                     total_weights_i += 1
 
         #gradient vector
-        self.__gradient_vector = lambda x: np.array([i(x) for i in np.concatenate((self.derivatives_weights,self.derivatives_bias))])
+        self.__gradient_vector = lambda x: np.array([i(x) for i in itertools.chain(self.derivatives_weights, self.derivatives_bias)])
 
 
 
