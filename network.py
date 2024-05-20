@@ -30,17 +30,16 @@ class Network:
         "accuracy": __compare_accuracy,
     }
 
-    def __start(x):
-        return x
-
     def __init__(self):
         self.layers = []
         self.loss = None
         self.metric = None
         self.derivatives_weights = None
         self.derivatives_bias = None
-        self.derivatives_previous = None
+        self.loss_derivative = None
         self.functions = None
+        self.y_train = None
+        self.__gradient_vector = None
 
     def add(self,layer: Layer):
         self.layers.append(layer)
@@ -50,7 +49,7 @@ class Network:
             self.layers[-1].create_weights_matrix()
 
     def compile(self,loss,metric):
-        if loss not in Network.__losses.keys(): raise Exception(f"Doesn't recognize \"{loss}\" as a cost")
+        if loss not in Network.__losses.keys(): raise Exception(f"Doesn't recognize \"{loss}\" as a loss function")
         else:
             self.loss = Network.__losses[loss][0]
             self.loss_derivative = Network.__losses[loss][1]
@@ -59,29 +58,21 @@ class Network:
 
         self.__compare_metric = Network.__compare_metrics[metric]
 
-        self.functions = [] * (len(self.layers) + 1)
-        self.functions[0] = Network.__start
+        self.functions = [] * (len(self.layers)+1)
+        self.derivatives_bias = [] * (len(self.layers))
+        self.derivatives_weights = [] * sum(l.weights.shape[0] * l.weights.shape[1] for l in self.layers)
 
-        for i,layer in enumerate(self.layers):
-            self.functions[i+1] = lambda x: layer.activation(layer.weights * self.functions[i](x) + layer.bias)
+        self.functions[0] = lambda x: x
+        for i in range(1,len(self.functions)):
+            self.functions[i] = lambda x: self.layers[i-1].activation(self.layers[i-1].weights * self.functions[i-1](x) + self.layers[i].bias)
 
-        self.derivatives_bias = [] * (len(self.layers) + 1)
-        self.derivatives_bias[0] = Network.__start
+        self.derivatives_bias[-1] = lambda x: self.layers[-1].derivative(self.layers[-1].weights * self.functions[-2](x) + self.layers[-1].bias) * self.loss_derivative(self.functions[-1](x),self.y_train)
+        for i in range(len(self.derivatives_bias)-2,-1,-1):
+            self.derivatives_bias[i] = lambda x: self.derivatives_bias[i+1] * self.layers[i].derivative(self.functions[i+1])
 
-        for i, layer in enumerate(self.layers):
-            self.derivatives_bias[i + 1] = lambda x: layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
+        self.derivatives_weights[]
+        total_i = 0
 
-        self.derivatives_previous = [] * (len(self.layers) + 1)
-        self.derivatives_previous[0] = Network.__start
-
-        for i, layer in enumerate(self.layers):
-            self.derivatives_previous[i + 1] = lambda x: layer.weights * layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
-
-        self.derivatives_weights = [] * (len(self.layers) + 1)
-        self.derivatives_weights[0] = Network.__start
-
-        for i,layer in enumerate(self.layers):
-            self.derivatives_weights[i+1] = lambda x: self.functions[i](x) * layer.derivative(layer.weights * self.functions[i](x) + layer.bias)
 
 
 
