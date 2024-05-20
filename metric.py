@@ -1,6 +1,7 @@
 import numpy as np
 
 class Metric:
+    name = ""
     def compare(a,b):
         pass
 
@@ -8,6 +9,7 @@ class Metric:
         pass
 
 class Accuracy(Metric):
+    name = "accuracy"
     def compare(a,b):
         if a < b: return True
 

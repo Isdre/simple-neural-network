@@ -17,11 +17,12 @@ class Layer:
         self.activation = activation
 
         self.weights = None
-        self.bias = np.random.normal()
+        self.bias = None
 
     #Creates weight's matrix
-    def create_weights_matrix(self,input_shape=None):
+    def create_weights(self, input_shape=None):
         if self.input_shape is None and input_shape is None: raise Exception("Unknown input's shape")
         elif input_shape is not None: self.input_shape = list(input_shape)
 
         self.weights = np.random.normal(size=(self.neurons_count, reduce(lambda x,y: x*y,self.input_shape)))
+        self.bias = np.random.normal()

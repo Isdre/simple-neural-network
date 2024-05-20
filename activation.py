@@ -1,12 +1,14 @@
 import numpy as np
 
 class Activation:
+    name = ""
     def calc(x):
         pass
     def calc_derivative(x):
         pass
 
 class Relu(Activation):
+    name = "relu"
     def calc(x):
         return np.maximum(x, 0)
 
@@ -14,8 +16,17 @@ class Relu(Activation):
         return np.where(x <= 0, 0, 1)
 
 class Linear(Activation):
+    name = "linear"
     def calc(x):
         return x
 
     def calc_derivative(x):
         return 1
+
+class Sigmoid(Activation):
+    name = "sigmoid"
+    def calc(x):
+        return 1 / (1 + np.exp(-x))
+
+    def calc_derivative(x):
+        return Sigmoid.calc(x) * (1 - Sigmoid.calc(x))
