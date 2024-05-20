@@ -2,43 +2,21 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from layers import Layer
-
+from losses import *
+from metric import *
 
 class Network:
-    def __mean_squared_error(y_pred,y_true):
-        return np.mean(np.square(np.round(y_pred - y_true,decimals=3)))
-
-    def __mean_squared_error_derivative(y_pred,y_true):
-        return np.mean(2*(np.round(y_pred - y_true,decimals=3)))
-
-    __losses = {
-        "mean_squared_error": [__mean_squared_error,__mean_squared_error_derivative]
-    }
-
-    def __accuracy(y_pred, y_true):
-        return np.all(np.equal(y_pred, y_true),axis=1).mean()
-
-    __metrics = {
-        "accuracy": __accuracy,
-    }
-
-    #return True if b is better than a
-    def __compare_accuracy(a,b):
-        return b > a
-
-    __compare_metrics = {
-        "accuracy": __compare_accuracy,
-    }
-
     def __init__(self):
         self.layers = []
         self.loss = None
         self.metric = None
-        self.derivatives_weights = None
-        self.derivatives_bias = None
-        self.loss_derivative = None
+
         self.functions = None
-        self.y_train = None
+        self.derivatives_weights = None
+        self.derivatives_neurons = None
+        self.derivatives_bias = None
+
+        self.y = None
         self.__gradient_vector = None
 
     def add(self,layer: Layer):
@@ -48,35 +26,29 @@ class Network:
         else:
             self.layers[-1].create_weights_matrix()
 
-    def compile(self,loss,metric):
-        if loss not in Network.__losses.keys(): raise Exception(f"Doesn't recognize \"{loss}\" as a loss function")
-        else:
-            self.loss = Network.__losses[loss][0]
-            self.loss_derivative = Network.__losses[loss][1]
-        if metric not in Network.__metrics.keys(): raise Exception(f"Doesn't recognize \"{metric}\" as a metric")
-        else: self.metric = Network.__metrics[metric]
+    def compile(self,loss:Loss,metric:Metric):
+        self.loss = loss
+        self.metric = metric
 
-        self.__compare_metric = Network.__compare_metrics[metric]
-
-        self.functions = [] * (len(self.layers)+1)
-        self.derivatives_bias = [] * (len(self.layers))
-        self.derivatives_weights = [] * sum(l.weights.shape[0] * l.weights.shape[1] for l in self.layers)
+        self.functions = [None] * (len(self.layers)+1)
+        self.derivatives_bias = [None] * (len(self.layers))
+        self.derivatives_weights = [None] * sum(l.weights.shape[0] * l.weights.shape[1] for l in self.layers)
 
         self.functions[0] = lambda x: x
-        for i in range(1,len(self.functions)):
-            self.functions[i] = lambda x: self.layers[i-1].activation(self.layers[i-1].weights * self.functions[i-1](x) + self.layers[i].bias)
+        for i in range(1, len(self.functions)):
+            self.functions[i] = (lambda l: lambda x: self.layers[l - 1].activation(np.dot(self.layers[l - 1].weights, self.functions[l - 1](x)) + self.layers[l - 1].bias))(i)
 
-        self.derivatives_bias[-1] = lambda x: self.layers[-1].derivative(self.layers[-1].weights * self.functions[-2](x) + self.layers[-1].bias) * self.loss_derivative(self.functions[-1](x),self.y_train)
-        for i in range(len(self.derivatives_bias)-2,-1,-1):
-            self.derivatives_bias[i] = lambda x: self.derivatives_bias[i+1] * self.layers[i].derivative(self.functions[i+1])
+        self.derivatives_bias[-1] = lambda x: self.layers[-1].derivative(np.dot(self.layers[-1].weights, self.functions[-2](x))) * np.mean(self.loss_derivative(self.functions[-1](x), self.y))
 
-        self.derivatives_weights[]
+        for i in range(len(self.derivatives_bias) - 2, -1, -1):
+            self.derivatives_bias[i] = (lambda l: lambda x: self.derivatives_bias[l + 1](x) * self.layers[l].derivative(np.dot(self.layers[l].weights, self.functions[l - 1](x))))(i)
+
         total_i = 0
 
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None,learning_rate=0.01):
+    def fit(self,X,y,epochs=1,validation_split=0.0,validation_data=None,validation_target=None,batch=1,learning_rate=0.01):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -104,3 +76,10 @@ class Network:
         else:
             raise Exception("validation_data is not None and validation_target is None")
 
+    def predict(self,X):
+        if X.shape == self.layers[0].shape:
+            return self.functions[-1](X)
+        elif X.shape[1:] == self.layers[0].shape:
+            return np.apply_along_axis(self.functions[-1],axis=1,arr=X)
+        else:
+            raise Exception(f"X doesn't have correct shape {X.shape} != {self.layers[0].shape} and {X.shape[1:]} != {self.layers[0].shape}")
