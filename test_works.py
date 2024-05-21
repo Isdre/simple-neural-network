@@ -15,15 +15,10 @@ def test_digit_works():
     assert X_train.shape == (60000, 28, 28)
     assert X_test.shape == (10000, 28, 28)
 
-
-
-    print(X_train.shape)
-
     network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=16, activation=Relu))
-    network.add(Layer(neurons_count=10, activation=Linear))
+    network.add(Layer(neurons_count=10, activation=Relu))
     network.compile(loss=SquareError, metric=Accuracy)
-
     print(y_test[0:6])
     print(network.predict(X_test[:5]))
     print(network.predict(X_test[6]))

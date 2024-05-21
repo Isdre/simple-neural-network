@@ -1,5 +1,3 @@
-import math
-from functools import reduce
 import numpy as np
 
 from activation import *
@@ -23,4 +21,4 @@ class Layer:
         if self.input_shape is None and input_shape is None: raise Exception("Unknown input's shape")
         elif input_shape is not None: self.input_shape = list(input_shape)
 
-        self.weights = np.random.normal(size=(self.neurons_count, reduce(lambda x,y: x*y,self.input_shape)))
+        self.weights = np.random.normal(scale=self.activation.sigma2(np.prod(self.input_shape),self.neurons_count),size=(self.neurons_count, np.prod(self.input_shape)))

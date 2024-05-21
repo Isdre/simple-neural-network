@@ -38,7 +38,7 @@ class Network:
 
         y = target
 
-        print("Creating validation data")
+        print("Preparing data")
         if validation_data is None and validation_split == 0.0:
             X_val = X
             y_val = y
@@ -57,7 +57,7 @@ class Network:
         best_model_w = [l.weights.copy() for l in self.layers]
 
         y_pred = self.predict(X_val)
-
+        print(y_pred)
         best_metric = self.metric.calc(y_pred,y_val)
 
         for epoch in range(epochs):
@@ -75,18 +75,21 @@ class Network:
                 #backpropagation
                 y = a[-1]
                 a.pop(-1)
-                error = self.loss.loss(y,target).sum()
+                error = self.loss.loss(y,target)
                 delta = np.where((y - target) < 0, -1, 1)
                 step = error * delta
+
                 for i in range(len(self.layers)-1,-1,-1):
                     new_step = self.layers[i].weights.T.dot(step) * self.layers[i].activation.calc_derivative(a[-1])
                     self.layers[i].weights -= learning_rate * np.outer(step,a[-1])
+                    #print(self.layers[i].weights)
                     step = new_step
                     a.pop(-1)
 
                 if len(a) != 0: raise Exception("len(a) != 0")
 
             y_pred = self.predict(X_val)
+            #print(y_pred)
             actual_metric = self.metric.calc(y_pred,y_val)
 
             print(f"Ended epoch number {epoch} with {self.metric.name} = {actual_metric}")
@@ -95,22 +98,22 @@ class Network:
                 best_metric = actual_metric
                 best_model_w = [l.weights.copy() for l in self.layers]
 
-
         for i in range(len(self.layers)):
             self.layers[i].weights = best_model_w[i].copy()
+
+        print(f"Best {self.metric.name} = {best_metric}")
 
     def predict(self,X):
         if np.prod(X.shape) == self.layers[0].weights.shape[1]:
             a = X.flatten()
             for l in self.layers:
-                a = l.activation.calc(np.dot(l.weights, a) )
+                a = l.activation.calc(np.dot(l.weights, a))
             a = np.array(a)
             max_values = np.max(a, keepdims=True)
             return np.where(a == max_values, 1, 0)
         elif np.prod(X.shape[1:]) == self.layers[0].weights.shape[1]:
             y_pred = []
             for x in X:
-                # forwardpropagation
                 a = x.flatten()
                 for l in self.layers:
                     a = l.activation.calc(np.dot(l.weights, a))

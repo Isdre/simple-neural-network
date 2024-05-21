@@ -7,6 +7,9 @@ class Activation:
     def calc_derivative(x):
         pass
 
+    def sigma2(fanIn,fanOut):
+        pass
+
 class Relu(Activation):
     name = "relu"
     def calc(x):
@@ -14,6 +17,9 @@ class Relu(Activation):
 
     def calc_derivative(x):
         return np.where(x <= 0, 0, 1)
+
+    def sigma2(fanIn,fanOut):
+        return 2/fanIn
 
 class Linear(Activation):
     name = "linear"
@@ -23,6 +29,9 @@ class Linear(Activation):
     def calc_derivative(x):
         return 1
 
+    def sigma2(fanIn,fanOut):
+        return 2 / (fanIn+fanOut)
+
 class Sigmoid(Activation):
     name = "sigmoid"
     def calc(x):
@@ -30,3 +39,6 @@ class Sigmoid(Activation):
 
     def calc_derivative(x):
         return Sigmoid.calc(x) * (1 - Sigmoid.calc(x))
+
+    def sigma2(fanIn,fanOut):
+        return 2 / (fanIn+fanOut)
