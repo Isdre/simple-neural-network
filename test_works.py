@@ -21,12 +21,13 @@ def test_digit_works():
 
     network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=16, activation=Relu))
-    network.add(Layer(neurons_count=10, activation=Sigmoid))
+    network.add(Layer(neurons_count=10, activation=Relu))
     network.compile(loss=SquareError,metric=Accuracy)
 
-    network.fit(X_train,y_train,epochs=3)
-    print(network.predict(X_test[0:5]))
     print(y_test[0:5])
+    print(network.predict(X_test[0:5]))
+    network.fit(X_train[:5],y_train[:5],epochs=3)
+    print(network.predict(X_test[0:5]))
     pass
 
 def test_iris_works():
