@@ -3,10 +3,10 @@ import numpy as np
 class Metric:
     name = ""
     def compare(a,b):
-        pass
+        raise NotImplementedError()
 
     def calc(y_pred,y_true):
-        pass
+        raise NotImplementedError()
 
 class Accuracy(Metric):
     name = "accuracy"

@@ -3,9 +3,9 @@ import numpy as np
 class Loss:
     name = ""
     def loss(y_pred,y_true):
-        pass
+        raise NotImplementedError()
     def loss_derivative(y_pred,y_true):
-        pass
+        raise NotImplementedError()
 
 class SquareError(Loss):
     name = "square_error"

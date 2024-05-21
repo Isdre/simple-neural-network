@@ -26,7 +26,7 @@ class Network:
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=100):
+    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.0000002):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -66,27 +66,23 @@ class Network:
                 self.layers[i].create_weights()
 
             for data,target in zip(X_train,y_train):
-                #forwardpropagation
+                #Forwardpropagation
                 a = [data.flatten()]
                 for l in self.layers:
                     a_1 = l.activation.calc(np.dot(l.weights,a[-1]))
                     a.append(a_1)
 
-                #backpropagation
-                y = a[-1]
-                a.pop(-1)
-                error = self.loss.loss(y,target)
-                delta = np.where((y - target) < 0, -1, 1)
-                step = error * delta
+                # Backpropagation
+                y_pred = a[-1]
+                error = self.loss.loss(y_pred, target).sum()
+                delta = error * (y_pred - target)
 
-                for i in range(len(self.layers)-1,-1,-1):
-                    new_step = self.layers[i].weights.T.dot(step) * self.layers[i].activation.calc_derivative(a[-1])
-                    self.layers[i].weights -= learning_rate * np.outer(step,a[-1])
-                    #print(self.layers[i].weights)
-                    step = new_step
-                    a.pop(-1)
-
-                if len(a) != 0: raise Exception("len(a) != 0")
+                for i in range(len(self.layers) - 1, -1, -1):
+                    a_i = a[i]
+                    step = np.outer(delta, a_i)
+                    self.layers[i].weights -= learning_rate * step
+                    if i != 0:
+                        delta = np.dot(self.layers[i].weights.T, delta) * self.layers[i-1].activation.calc_derivative(a[i])
 
             y_pred = self.predict(X_val)
             #print(y_pred)

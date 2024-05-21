@@ -3,12 +3,12 @@ import numpy as np
 class Activation:
     name = ""
     def calc(x):
-        pass
+        raise NotImplementedError()
     def calc_derivative(x):
-        pass
+        raise NotImplementedError()
 
     def sigma2(fanIn,fanOut):
-        pass
+        raise NotImplementedError()
 
 class Relu(Activation):
     name = "relu"

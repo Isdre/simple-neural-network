@@ -27,8 +27,5 @@ def test_digit_works():
     print(network.predict(X_test[6]))
     pass
 
-def test_iris_works():
-    pass
-
 if __name__ == "main":
     test_digit_works()
