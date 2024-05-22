@@ -26,7 +26,7 @@ class Network:
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.00001):
+    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.000002):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
