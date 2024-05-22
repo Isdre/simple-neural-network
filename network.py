@@ -26,7 +26,7 @@ class Network:
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.0000002):
+    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.00001):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -74,8 +74,7 @@ class Network:
 
                 # Backpropagation
                 y_pred = a[-1]
-                error = self.loss.loss(y_pred, target).sum()
-                delta = error * (y_pred - target)
+                delta = self.loss.loss_derivative(y_pred, target)
 
                 for i in range(len(self.layers) - 1, -1, -1):
                     a_i = a[i]
@@ -88,7 +87,7 @@ class Network:
             #print(y_pred)
             actual_metric = self.metric.calc(y_pred,y_val)
 
-            print(f"Ended epoch number {epoch} with {self.metric.name} = {actual_metric}")
+            print(f"Ended epoch number {epoch} with loss = {self.loss.loss(y_pred,y_val).mean()}, {self.metric.name} = {actual_metric}")
 
             if self.metric.compare(actual_metric,best_metric):
                 best_metric = actual_metric

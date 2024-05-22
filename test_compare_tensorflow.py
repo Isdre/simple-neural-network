@@ -28,9 +28,9 @@ def test_digit_tensorflow():
         tf.keras.layers.Dense(10)
     ])
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(0.001),
+        optimizer=tf.keras.optimizers.SGD(0.001),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+        metrics=[tf.keras.metrics.SparseCategoricalAccuracy()]
     )
 
     model.fit(X_train,y_train,epochs=3)
