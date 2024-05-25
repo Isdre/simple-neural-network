@@ -74,7 +74,7 @@ class Network:
 
                 # Backpropagation
                 y_pred = a[-1]
-                delta = self.loss.loss_derivative(y_pred, target)
+                delta = y_pred - target
 
                 for i in range(len(self.layers) - 1, -1, -1):
                     a_i = a[i]
