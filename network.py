@@ -76,10 +76,8 @@ class Network:
                     a.append(a_1)
 
                 # Backpropagation
-                y_pred = a[-1]
-                delta = y_pred - target
-
-                self.optimizer.optimize(self.layers,a,delta)
+                loss = self.loss.loss(a[-1],target)
+                self.optimizer.optimize(self.layers,a,target,loss)
 
             y_pred = self.predict(X_val)
             #print(y_pred)
