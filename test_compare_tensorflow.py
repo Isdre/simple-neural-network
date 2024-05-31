@@ -5,6 +5,7 @@ from layers import Layer
 from losses import *
 from metric import *
 from activation import *
+from optimizers import *
 from network import Network
 
 from sklearn.metrics import accuracy_score
@@ -18,7 +19,7 @@ def test_digit_tensorflow():
     network = Network()
     network.add(Layer(neurons_count=128,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=10, activation=Relu))
-    network.compile(loss=SquareError,metric=Accuracy)
+    network.compile(loss=SquareError,optimizer=SGD(),metric=Accuracy)
 
     network.fit(X_train,y_train,epochs=3, validation_split=0.1)
 

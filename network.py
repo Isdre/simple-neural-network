@@ -6,12 +6,14 @@ from sklearn.model_selection import train_test_split
 from layers import Layer
 from losses import *
 from metric import *
+from optimizers import *
 
 class Network:
     def __init__(self):
         self.layers = []
         self.loss = None
         self.metric = None
+        self.optimizer = None
 
     def add(self,layer: Layer):
         self.layers.append(layer)
@@ -20,13 +22,14 @@ class Network:
         else:
             self.layers[-1].create_weights()
 
-    def compile(self, loss:Loss, metric:Metric):
+    def compile(self, loss:Loss, optimizer:Optimizer, metric:Metric):
         self.loss = loss
+        self.optimizer = optimizer
         self.metric = metric
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None,learning_rate=0.000002):
+    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -76,12 +79,7 @@ class Network:
                 y_pred = a[-1]
                 delta = y_pred - target
 
-                for i in range(len(self.layers) - 1, -1, -1):
-                    a_i = a[i]
-                    step = np.outer(delta, a_i)
-                    self.layers[i].weights -= learning_rate * step
-                    if i != 0:
-                        delta = np.dot(self.layers[i].weights.T, delta) * self.layers[i-1].activation.calc_derivative(a[i])
+                self.optimizer.optimize(self.layers,a,delta)
 
             y_pred = self.predict(X_val)
             #print(y_pred)

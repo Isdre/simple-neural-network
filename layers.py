@@ -16,6 +16,7 @@ class Layer:
 
         self.weights = None
 
+
     #Creates weight's matrix
     def create_weights(self, input_shape=None):
         if self.input_shape is None and input_shape is None: raise Exception("Unknown input's shape")

@@ -7,6 +7,7 @@ from network import Network
 from losses import *
 from metric import *
 from activation import *
+from optimizers import *
 
 def test_digit_works():
     (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data(path='mnist.npz')
@@ -18,7 +19,7 @@ def test_digit_works():
     network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=16, activation=Relu))
     network.add(Layer(neurons_count=10, activation=Relu))
-    network.compile(loss=SquareError, metric=Accuracy)
+    network.compile(loss=SquareError,optimizer=SGD(), metric=Accuracy)
     print(y_test[0:6])
     print(network.predict(X_test[:5]))
     print(network.predict(X_test[6]))
