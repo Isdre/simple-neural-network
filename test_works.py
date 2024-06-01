@@ -19,7 +19,7 @@ def test_digit_works():
     network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=16, activation=Relu))
     network.add(Layer(neurons_count=10, activation=Relu))
-    network.compile(loss=SquareError,optimizer=SGD(), metric=Accuracy)
+    network.compile(loss=SquareError,optimizer=Adam(), metric=Accuracy)
     print(y_test[0:6])
     print(network.predict(X_test[:5]))
     print(network.predict(X_test[6]))

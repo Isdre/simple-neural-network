@@ -15,6 +15,7 @@ class Layer:
         self.activation = activation
 
         self.weights = None
+        self.bias = np.zeros(self.neurons_count)
 
 
     #Creates weight's matrix

@@ -72,7 +72,7 @@ class Network:
                 #Forwardpropagation
                 a = [data.flatten()]
                 for l in self.layers:
-                    a_1 = l.activation.calc(np.dot(l.weights,a[-1]))
+                    a_1 = l.activation.calc(np.dot(l.weights,a[-1]) + l.bias)
                     a.append(a_1)
 
                 # Backpropagation
