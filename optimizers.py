@@ -8,9 +8,16 @@ class Optimizer:
         raise NotImplementedError()
 
 class SGD(Optimizer):
-    def __init__(self, learning_rate=0.00001):
+    def __init__(self, learning_rate=0.00001,momentum=0.0):
         super().__init__(learning_rate)
+        self.momentum = momentum
+        self.weights_prev = None
+        self.bias_prev = None
     def optimize(self,layers,a,target,loss):
+        if self.weights_prev is None:
+            self.weights_prev = [np.zeros(layer.weights.shape) for layer in layers]
+        if self.bias_prev is None:
+            self.bias_prev = [np.zeros(layer.bias.shape) for layer in layers]
         y_pred = a[-1]
         delta = y_pred - target
 
@@ -21,8 +28,15 @@ class SGD(Optimizer):
 
         for i in range(len(layers) - 1, -1, -1):
             a_i = a[i]
-            step = np.outer(delta, a_i)
-            layers[i].weights -= self.learning_rate * step
+            Vdw = self.momentum * self.weights_prev[i] + (1 - self.momentum) * np.outer(delta, a_i)
+            Vdb = self.momentum * self.bias_prev[i] + (1 - self.momentum) * delta
+
+            layers[i].weights -= self.learning_rate * Vdw
+            layers[i].bias -= self.learning_rate * Vdb
+
+            self.weights_prev[i] = Vdw
+            self.bias_prev = Vdb
+
             if i != 0:
                 delta = np.dot(layers[i].weights.T, delta) * layers[i - 1].activation.calc_derivative(a[i])
 
