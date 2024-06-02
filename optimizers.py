@@ -1,23 +1,24 @@
 import numpy as np
 
 class Optimizer:
-    def __init__(self,learning_rate):
+    def __init__(self,learning_rate,epsilon):
         self.learning_rate = learning_rate
+        self.epsilon = epsilon
 
-    def optimize(self,layers,a,delta):
+    def optimize(self,layers,a,target,loss):
         raise NotImplementedError()
 
 class SGD(Optimizer):
-    def __init__(self, learning_rate=0.00001,momentum=0.0):
-        super().__init__(learning_rate)
-        self.momentum = momentum
-        self.weights_prev = None
-        self.bias_prev = None
+    def __init__(self, learning_rate=1e-06,epsilon=1e-07,momentum=0.0):
+        super().__init__(learning_rate,epsilon)
+        self.__momentum = momentum
+        self.__weights_prev = None
+        self.__bias_prev = None
     def optimize(self,layers,a,target,loss):
-        if self.weights_prev is None:
-            self.weights_prev = [np.zeros(layer.weights.shape) for layer in layers]
-        if self.bias_prev is None:
-            self.bias_prev = [np.zeros(layer.bias.shape) for layer in layers]
+        if self.__weights_prev is None:
+            self.__weights_prev = [np.zeros(layer.weights.shape) for layer in layers]
+        if self.__bias_prev is None:
+            self.__bias_prev = [np.zeros(layer.bias.shape) for layer in layers]
         y_pred = a[-1]
         delta = y_pred - target
 
@@ -28,34 +29,34 @@ class SGD(Optimizer):
 
         for i in range(len(layers) - 1, -1, -1):
             a_i = a[i]
-            Vdw = self.momentum * self.weights_prev[i] + (1 - self.momentum) * np.outer(delta, a_i)
-            Vdb = self.momentum * self.bias_prev[i] + (1 - self.momentum) * delta
+            self.__weights_prev[i] = self.__momentum * self.__weights_prev[i] + (1 - self.__momentum) * np.outer(delta, a_i)
+            self.__bias_prev[i] = self.__momentum * self.__bias_prev[i] + (1 - self.__momentum) * delta
 
-            layers[i].weights -= self.learning_rate * Vdw
-            layers[i].bias -= self.learning_rate * Vdb
+            self.__weights_prev[i][(self.__weights_prev[i] < self.epsilon) & (self.__weights_prev[i] > -1 * self.epsilon)] = 0
+            self.__bias_prev[i][(self.__bias_prev[i] < self.epsilon) & (self.__bias_prev[i] > -1 * self.epsilon)] = 0
 
-            self.weights_prev[i] = Vdw
-            self.bias_prev = Vdb
+
+
+            layers[i].weights -= self.learning_rate * self.__weights_prev[i]
+            layers[i].bias -= self.learning_rate * self.__bias_prev[i]
 
             if i != 0:
                 delta = np.dot(layers[i].weights.T, delta) * layers[i - 1].activation.calc_derivative(a[i])
 
-class Adam(Optimizer):
-    def __init__(self, learning_rate=0.00000001, beta1=0.9, beta2=0.999, epsilon=0.00000001):
-        super().__init__(learning_rate)
-        self.beta1 = beta1
-        self.beta2 = beta2
-        self.epsilon=epsilon
-        self.momentum = None
-        self.v = None
+class RMSProp(Optimizer):
+    def __init__(self, learning_rate=1e-06, epsilon=1e-07, beta=0.9):
+        super().__init__(learning_rate,epsilon)
+        self.__beta = beta
+        self.__s_weights_prev = None
+        self.__s_bias_prev = None
         self.t = 0
 
 
     def optimize(self,layers,a,target,loss):
-        if self.momentum is None:
-            self.momentum = [np.zeros(layer.weights.shape) for layer in layers]
-        if self.v is None:
-            self.v = [np.zeros(layer.weights.shape) for layer in layers]
+        if self.__s_weights_prev is None:
+            self.__s_weights_prev = [np.zeros(layer.weights.shape) for layer in layers]
+        if self.__s_bias_prev is None:
+            self.__s_bias_prev = [np.zeros(layer.bias.shape) for layer in layers]
 
         self.t += 1
         y_pred = a[-1]
@@ -69,13 +70,11 @@ class Adam(Optimizer):
         for i in range(len(layers) - 1, -1, -1):
             a_i = a[i]
             step = np.outer(delta, a_i)
-            self.momentum[i] = self.beta1 * self.momentum[i] + (1 - self.beta1) * step
-            self.v[i] = self.beta2 * self.v[i] + (1 - self.beta2) * (step ** 2)
+            self.__s_weights_prev[i] =(self.__beta * self.__s_weights_prev[i] + (1 - self.__beta) * (step ** 2)).mean()
+            self.__s_bias_prev[i] = (self.__beta * self.__s_bias_prev[i] + (1 - self.__beta) * (delta ** 2)).mean()
 
-            m_hat = self.momentum[i] / (1 - self.beta1 ** self.t)
-            v_hat = self.v[i] / (1 - self.beta2 ** self.t)
-
-            layers[i].weights -= self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
+            layers[i].weights -= self.learning_rate * (step / np.sqrt(self.__s_weights_prev[i]+self.epsilon))
+            layers[i].bias -= self.learning_rate * (delta / np.sqrt(self.__s_bias_prev[i]+self.epsilon))
 
             if i != 0:
                 delta = np.dot(layers[i].weights.T, delta) * layers[i - 1].activation.calc_derivative(a[i])

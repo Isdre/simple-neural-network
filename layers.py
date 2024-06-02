@@ -3,7 +3,7 @@ import numpy as np
 from activation import *
 
 class Layer:
-    def __init__(self,neurons_count, activation:Activation, input_shape=None):
+    def __init__(self,neurons_count, activation:Activation=Linear, input_shape=None):
         if neurons_count is None: raise Exception("Require to receive amount of neurons")
         else: self.neurons_count = neurons_count
 
@@ -15,7 +15,7 @@ class Layer:
         self.activation = activation
 
         self.weights = None
-        self.bias = np.zeros(self.neurons_count)
+        self.bias = None
 
 
     #Creates weight's matrix
@@ -24,3 +24,4 @@ class Layer:
         elif input_shape is not None: self.input_shape = list(input_shape)
 
         self.weights = np.random.normal(scale=self.activation.sigma2(np.prod(self.input_shape),self.neurons_count),size=(self.neurons_count, np.prod(self.input_shape)))
+        self.bias = np.random.normal(scale=self.activation.sigma2(np.prod(self.input_shape), self.neurons_count),size=(self.neurons_count))

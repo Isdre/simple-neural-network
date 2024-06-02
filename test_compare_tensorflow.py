@@ -18,8 +18,8 @@ def test_digit_tensorflow():
 
     network = Network()
     network.add(Layer(neurons_count=128,activation=Relu,input_shape=[28,28]))
-    network.add(Layer(neurons_count=10, activation=Relu))
-    network.compile(loss=SquareError,optimizer=SGD(),metric=Accuracy)
+    network.add(Layer(neurons_count=10))
+    network.compile(loss=SquareError,optimizer=RMSProp(),metric=Accuracy)
 
     network.fit(X_train,y_train,epochs=3, validation_split=0.1)
 
@@ -29,12 +29,12 @@ def test_digit_tensorflow():
         tf.keras.layers.Dense(10)
     ])
     model.compile(
-        optimizer=tf.keras.optimizers.SGD(0.001),
+        optimizer=tf.keras.optimizers.RMSprop(0.001),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()]
     )
 
-    model.fit(X_train,y_train,epochs=3)
+    model.fit(X_train,y_train,batch_size=32,epochs=3)
 
     y_pred = np.argmax(network.predict(X_test),axis=1)
     print(y_pred[:3])

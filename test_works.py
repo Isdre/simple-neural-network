@@ -18,15 +18,14 @@ def test_digit_works():
 
     network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
     network.add(Layer(neurons_count=16, activation=Relu))
-    network.add(Layer(neurons_count=10, activation=Relu))
-    network.compile(loss=SquareError,optimizer=SGD(momentum=0.5), metric=Accuracy)
+    network.add(Layer(neurons_count=10, activation=Linear))
+    network.compile(loss=SquareError,optimizer=SGD(momentum=0.9), metric=Accuracy)
     print(y_test[0:6])
     print(network.predict(X_test[:5]))
     print(network.predict(X_test[6]))
-    network.fit(X_train,y_train,epochs=3)
+    network.fit(X_train,y_train,epochs=3,batch_size=1)
     print(network.predict(X_test[:5]))
     print(network.predict(X_test[6]))
-    pass
 
 if __name__ == "main":
     test_digit_works()

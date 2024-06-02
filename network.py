@@ -1,4 +1,5 @@
 import itertools
+import random
 
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -29,7 +30,7 @@ class Network:
 
 
 
-    def fit(self,X,y,epochs=1,validation_split=0.3,validation_data=None,validation_target=None):
+    def fit(self,X,y,epochs=1,batch_size=1,validation_split=0.3,validation_data=None,validation_target=None):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
         num_classes = max(y) + 1
@@ -63,26 +64,10 @@ class Network:
         print(y_pred)
         best_metric = self.metric.calc(y_pred,y_val)
 
+
         for epoch in range(epochs):
             print(f"Starting epoch number {epoch}")
-            for i in range(len(self.layers)):
-                self.layers[i].create_weights()
-
-            for data,target in zip(X_train,y_train):
-                #Forwardpropagation
-                a = [data.flatten()]
-                for l in self.layers:
-                    a_1 = l.activation.calc(np.dot(l.weights,a[-1]) + l.bias)
-                    a.append(a_1)
-
-                # Backpropagation
-                loss = self.loss.loss(a[-1],target)
-                self.optimizer.optimize(self.layers,a,target,loss)
-
-            y_pred = self.predict(X_val)
-            #print(y_pred)
-            actual_metric = self.metric.calc(y_pred,y_val)
-
+            actual_metric = self.__fit_for_epoch(X_train, y_train, batch_size, X_val, y_val)
             print(f"Ended epoch number {epoch} with loss = {self.loss.loss(y_pred,y_val).mean()}, {self.metric.name} = {actual_metric}")
 
             if self.metric.compare(actual_metric,best_metric):
@@ -93,6 +78,29 @@ class Network:
             self.layers[i].weights = best_model_w[i].copy()
 
         print(f"Best {self.metric.name} = {best_metric}")
+
+    def __fit_for_epoch(self,X_train,y_train,batch_size,X_val,y_val):
+
+        for i in range(len(self.layers)):
+            self.layers[i].create_weights()
+
+        pairs = list(zip(X_train, y_train))
+        random.shuffle(pairs)
+
+        for data, target in pairs:
+            # Forwardpropagation
+            a = [data.flatten()]
+            for l in self.layers:
+                a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias)
+                a.append(a_1)
+
+            # Backpropagation
+            loss = self.loss.loss(a[-1], target)
+            self.optimizer.optimize(self.layers, a, target, loss)
+
+        y_pred = self.predict(X_val)
+        # print(y_pred)
+        return self.metric.calc(y_pred, y_val)
 
     def predict(self,X):
         if np.prod(X.shape) == self.layers[0].weights.shape[1]:
