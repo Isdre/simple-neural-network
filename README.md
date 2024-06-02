@@ -2,7 +2,12 @@
 
 ## Description
 
-This repository contains Python classes for implementing a simple neural network with stochastic gradient descent optimizer. The implementation follows the concepts outlined in the book "Grokking Deep Learning".
+This repository contains Python classes for implementing a simple neural network. The implementation follows the concepts outlined in the book "Grokking Deep Learning".
+
+Available optimizers:
+  - SGD
+  - RMSProp
+  - Adam
 
 ### What you need to know about this project
 - Neural network architecture implemented using Python classes
