@@ -29,7 +29,9 @@ class SGD(Optimizer):
 
         for i in range(len(layers) - 1, -1, -1):
             a_i = a[i]
-            self.__weights_prev[i] = self.__momentum * self.__weights_prev[i] + (1 - self.__momentum) * np.outer(delta, a_i)
+            step = np.outer(delta, a_i)
+
+            self.__weights_prev[i] = self.__momentum * self.__weights_prev[i] + (1 - self.__momentum) * step
             self.__bias_prev[i] = self.__momentum * self.__bias_prev[i] + (1 - self.__momentum) * delta
 
             self.__weights_prev[i][(self.__weights_prev[i] < self.epsilon) & (self.__weights_prev[i] > -1 * self.epsilon)] = 0
@@ -117,13 +119,13 @@ class Adam(Optimizer):
             self.__s_weights_prev[i] = (self.__beta * self.__s_weights_prev[i] + (1 - self.__beta) * (step ** 2)).mean()
             self.__s_bias_prev[i] = (self.__beta * self.__s_bias_prev[i] + (1 - self.__beta) * (delta ** 2)).mean()
 
-            self.__weights_prev[i] = self.__weights_prev[i] / (1 - self.__momentum)
-            self.__bias_prev[i] = self.__bias_prev[i] / (1 - self.__momentum)
-            self.__s_weights_prev[i] = self.__s_weights_prev[i] / (1 - self.__beta)
-            self.__s_bias_prev[i] = self.__s_bias_prev[i] / (1 - self.__beta)
+            weights_corrected = self.__weights_prev[i] / (1 - self.__momentum)
+            bias_corrected = self.__bias_prev[i] / (1 - self.__momentum)
+            s_weights_corrected = self.__s_weights_prev[i] / (1 - self.__beta)
+            s_bias_corrected = self.__s_bias_prev[i] / (1 - self.__beta)
 
-            layers[i].weights -= self.learning_rate * (self.__weights_prev[i] / (np.sqrt(self.__s_weights_prev[i])+self.epsilon))
-            layers[i].bias -= self.learning_rate * (self.__bias_prev[i] / (np.sqrt(self.__s_bias_prev[i])+self.epsilon))
+            layers[i].weights -= self.learning_rate * (weights_corrected / (np.sqrt(s_weights_corrected)+self.epsilon))
+            layers[i].bias -= self.learning_rate * (bias_corrected / (np.sqrt(s_bias_corrected)+self.epsilon))
 
             if i != 0:
                 delta = np.dot(layers[i].weights.T, delta) * layers[i - 1].activation.calc_derivative(a[i])
