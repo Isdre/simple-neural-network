@@ -12,6 +12,10 @@ class SGD(Optimizer):
     def __init__(self, learning_rate=1e-06,epsilon=1e-07,momentum=0.0):
         super().__init__(learning_rate,epsilon)
         self.__momentum = momentum
+
+        if self.__momentum < 0 or self.__momentum > 1:
+            raise ValueError("Momentum must be between 0 and 1")
+
         self.__weights_prev = None
         self.__bias_prev = None
     def optimize(self,layers,a,target,loss):
@@ -49,6 +53,10 @@ class RMSProp(Optimizer):
     def __init__(self, learning_rate=1e-06, epsilon=1e-07, beta=0.999):
         super().__init__(learning_rate,epsilon)
         self.__beta = beta
+
+        if self.__beta < 0 or self.__beta > 1:
+            raise ValueError("Beta must be between 0 and 1")
+
         self.__s_weights_prev = None
         self.__s_bias_prev = None
 
@@ -83,6 +91,12 @@ class Adam(Optimizer):
         super().__init__(learning_rate,epsilon)
         self.__momentum = momentum
         self.__beta = beta
+
+        if self.__momentum < 0 or self.__momentum > 1:
+            raise ValueError("Momentum must be between 0 and 1")
+        if self.__beta < 0 or self.__beta > 1:
+            raise ValueError("Beta must be between 0 and 1")
+
         self.__weights_prev = None
         self.__bias_prev = None
         self.__s_weights_prev = None
