@@ -21,7 +21,7 @@ def test_digit_tensorflow():
     network.add(Layer(neurons_count=10))
     network.compile(loss=SquareError,optimizer=Adam(),metric=Accuracy)
 
-    network.fit(X_train,y_train,epochs=3, validation_split=0.1)
+    network.fit(X_train,y_train,epochs=3,batch_size=30, validation_split=0.1)
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),
