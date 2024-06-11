@@ -102,38 +102,29 @@ class Network:
         # print(y_pred)
         return self.metric.calc(y_pred, y_val)
 
-    # def __fit_for_epoch(self,X_train,y_train,batch_size,X_val,y_val):
-    #
-    #     for i in range(len(self.layers)):
-    #         self.layers[i].create_weights()
-    #
+    # def __fit_for_epoch(self, X_train, y_train, batch_size, X_val, y_val):
     #     pairs = list(zip(X_train, y_train))
     #     random.shuffle(pairs)
-    #     batch_num = len(pairs)//batch_size
+    #     batch_num = len(pairs) // batch_size
+    #
     #     for i in range(batch_num):
-    #         data = np.array([record[0].flatten() for record in pairs[i*batch_size:(i+1)*batch_size]])
+    #         data = np.array([record[0].flatten() for record in pairs[i * batch_size:(i + 1) * batch_size]])
     #         target = np.array([record[1] for record in pairs[i * batch_size:(i + 1) * batch_size]])
-    #         average_target = np.mean(np.stack(target, axis=0), axis=0)
+    #
     #         # Forwardpropagation
     #         a = [data.T]
     #         for l in self.layers:
-    #             a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias)
+    #             a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias[:, np.newaxis])
     #             a.append(a_1)
     #
     #         # Backpropagation
-    #         average_a = []
+    #         average_a = [np.sum(layer_a, axis=1) for layer_a in a]
+    #         average_target = np.sum(target, axis=0)
     #
-    #         # Iterate over the zipped sublists
-    #         for arrays in zip(*a):
-    #             stacked_arrays = np.stack(arrays, axis=0)
-    #             average_array = np.mean(stacked_arrays, axis=0)
-    #             average_a.append(average_array)
-    #
-    #         loss = self.loss.loss(average_a[-1], average_target)
+    #         loss = self.loss.loss(a[-1], target.T).sum(axis=1)
     #         self.optimizer.optimize(self.layers, average_a, average_target, loss)
     #
     #     y_pred = self.predict(X_val)
-    #     # print(y_pred)
     #     return self.metric.calc(y_pred, y_val)
 
 
