@@ -124,7 +124,7 @@ class Adam(Optimizer):
             a_i = a[i]
             step = np.outer(delta, a_i)
 
-            self.__weights_prev[i] = self.__momentum * self.__weights_prev[i] + (1 - self.__momentum) * np.outer(delta,a_i)
+            self.__weights_prev[i] = self.__momentum * self.__weights_prev[i] + (1 - self.__momentum) * step
             self.__bias_prev[i] = self.__momentum * self.__bias_prev[i] + (1 - self.__momentum) * delta
 
             self.__weights_prev[i][(self.__weights_prev[i] < self.epsilon) & (self.__weights_prev[i] > -1 * self.epsilon)] = 0
