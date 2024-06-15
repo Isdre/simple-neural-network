@@ -111,20 +111,39 @@ class Network:
         batch_num = len(pairs) // batch_size
 
         for i in range(batch_num):
-            data = np.array([record[0].flatten() for record in pairs[i * batch_size:(i + 1) * batch_size]])
-            target = np.array([record[1] for record in pairs[i * batch_size:(i + 1) * batch_size]])
+            batch_data = pairs[i * batch_size:(i + 1) * batch_size]
+
+            batch_X = np.array([data.flatten() for data, _ in batch_data]).T
+            batch_y = np.array([target for _, target in batch_data])
 
             # Forwardpropagation
-            a = [data.T]
+            a = [batch_X]
             for l in self.layers:
                 a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias[:, np.newaxis])
                 a.append(a_1)
 
             # Backpropagation
-            loss = self.loss.loss(a[-1], target.T).mean(axis=1)
+            loss = self.loss.loss(a[-1], batch_y.T).mean(axis=1)
             average_a = [np.mean(layer_a, axis=1) for layer_a in a]
-            self.optimizer.optimize(self.layers, average_a, target.mean(axis=0), loss)
+            self.optimizer.optimize(self.layers, average_a, batch_y.mean(axis=0), loss)
 
+        if len(pairs) % batch_size != 0:
+            remaining_data = pairs[batch_num * batch_size:]
+            batch_X = np.array([data.flatten() for data, _ in remaining_data]).T
+            batch_y = np.array([target for _, target in remaining_data])
+
+            # Forwardpropagation
+            a = [batch_X]
+            for l in self.layers:
+                a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias[:, np.newaxis])
+                a.append(a_1)
+
+            # Backpropagation
+            loss = self.loss.loss(a[-1], batch_y.T).mean(axis=1)
+            average_a = [np.mean(layer_a, axis=1) for layer_a in a]
+            self.optimizer.optimize(self.layers, average_a, batch_y.mean(axis=0), loss)
+
+        # Validation prediction
         y_pred = self.predict(X_val)
         return self.metric.calc(y_pred, y_val)
 
