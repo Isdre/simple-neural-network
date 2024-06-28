@@ -28,8 +28,6 @@ class Network:
         self.optimizer = optimizer
         self.metric = metric
 
-
-
     def fit(self,X,y,epochs=1,batch_size=1,validation_split=0.3,validation_data=None,validation_target=None):
         if epochs < 1: raise Exception(f"Epochs can't be less than 1")
         #Prepare y's values
