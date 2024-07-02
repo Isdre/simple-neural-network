@@ -23,7 +23,7 @@ def test_digit_tensorflow():
     network.add(Layer(neurons_count=10))
     network.compile(loss=SquareError(), optimizer=Adam(0.0002), metric=Accuracy())
 
-    network.fit(X_train, y_train, epochs=5,batch_size=10, validation_split=0.1)
+    network.fit(X_train, y_train, epochs=5,batch_size=16, validation_split=0.1)
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),
@@ -37,7 +37,7 @@ def test_digit_tensorflow():
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()]
     )
 
-    model.fit(X_train, y_train, batch_size=32, epochs=5, validation_split=0.1)
+    model.fit(X_train, y_train, batch_size=16, epochs=5, validation_split=0.1)
 
     y_pred = np.argmax(network.predict(X_train), axis=1)
     print(y_pred[:3])
