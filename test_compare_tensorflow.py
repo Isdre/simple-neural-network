@@ -23,7 +23,7 @@ def test_digit_tensorflow():
     network.add(Layer(neurons_count=10))
     network.compile(loss=SquareError(), optimizer=Adam(0.0002), metric=Accuracy())
 
-    network.fit(X_train, y_train, epochs=5, validation_split=0.1)
+    network.fit(X_train, y_train, epochs=5,batch_size=10, validation_split=0.1)
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),

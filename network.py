@@ -117,7 +117,7 @@ class Network:
             # Forwardpropagation
             a = [batch_X]
             for l in self.layers:
-                a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias[:, np.newaxis])
+                a_1 = l.calc(a[-1])
                 a.append(a_1)
 
             # Backpropagation
@@ -133,7 +133,7 @@ class Network:
             # Forwardpropagation
             a = [batch_X]
             for l in self.layers:
-                a_1 = l.activation.calc(np.dot(l.weights, a[-1]) + l.bias[:, np.newaxis])
+                a_1 = l.calc(a[-1])
                 a.append(a_1)
 
             # Backpropagation

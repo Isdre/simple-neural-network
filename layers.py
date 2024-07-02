@@ -25,3 +25,6 @@ class Layer:
 
         self.weights = np.random.normal(scale=self.activation.sigma2(np.prod(self.input_shape),self.neurons_count),size=(self.neurons_count, np.prod(self.input_shape)))
         self.bias = np.random.normal(scale=self.activation.sigma2(np.prod(self.input_shape), self.neurons_count),size=(self.neurons_count))
+
+    def calc(self,input):
+        return self.activation.calc(np.dot(self.weights, input) + self.bias[:, np.newaxis])
