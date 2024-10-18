@@ -4,7 +4,7 @@ import random
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-from layers import Layer
+from layers import *
 from losses import *
 from metric import *
 from activation import *
@@ -18,12 +18,12 @@ def test_digit_tensorflow():
     assert X_test.shape == (10000, 28, 28)
 
     network = Network()
-    network.add(Layer(neurons_count=128, activation=Relu, input_shape=[28, 28]))
-    network.add(Layer(neurons_count=128, activation=Relu))
-    network.add(Layer(neurons_count=10))
+    network.add(Dense(neurons_count=128, activation=Relu, input_shape=[28, 28]))
+    network.add(Dense(neurons_count=128, activation=Relu))
+    network.add(Dense(neurons_count=10))
     network.compile(loss=SquareError(), optimizer=Adam(0.0002), metric=Accuracy())
 
-    network.fit(X_train, y_train, epochs=5,batch_size=16, validation_split=0.1)
+    network.fit(X_train, y_train, epochs=5,batch_size=32, validation_split=0.1)
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Flatten(input_shape=(28, 28)),
@@ -37,7 +37,7 @@ def test_digit_tensorflow():
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()]
     )
 
-    model.fit(X_train, y_train, batch_size=16, epochs=5, validation_split=0.1)
+    model.fit(X_train, y_train, batch_size=32, epochs=5, validation_split=0.1)
 
     y_pred = np.argmax(network.predict(X_train), axis=1)
     print(y_pred[:3])

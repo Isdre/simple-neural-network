@@ -121,9 +121,9 @@ class Network:
                 a.append(a_1)
 
             # Backpropagation
-            loss = self.loss.loss(a[-1], batch_y.T).mean(axis=1)
-            average_a = [np.mean(layer_a, axis=1) for layer_a in a]
-            self.optimizer.optimize(self.layers, average_a, batch_y.mean(axis=0), loss)
+            loss = self.loss.loss(a[-1], batch_y.T).sum(axis=1)
+            sum_a = [np.sum(layer_a, axis=1) for layer_a in a]
+            self.optimizer.optimize(self.layers, sum_a, batch_y.sum(axis=0), loss)
 
         if len(pairs) % batch_size != 0:
             remaining_data = pairs[batch_num * batch_size:]
@@ -137,9 +137,9 @@ class Network:
                 a.append(a_1)
 
             # Backpropagation
-            loss = self.loss.loss(a[-1], batch_y.T).mean(axis=1)
-            average_a = [np.mean(layer_a, axis=1) for layer_a in a]
-            self.optimizer.optimize(self.layers, average_a, batch_y.mean(axis=0), loss)
+            loss = self.loss.loss(a[-1], batch_y.T).sum(axis=1)
+            sum_a = [np.sum(layer_a, axis=1) for layer_a in a]
+            self.optimizer.optimize(self.layers, sum_a, batch_y.sum(axis=0), loss)
 
         # Validation prediction
         y_pred = self.predict(X_val)

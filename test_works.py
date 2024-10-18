@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 import activation
-from layers import Layer
+from layers import *
 from network import Network
 
 from losses import *
@@ -16,9 +16,9 @@ def test_digit_works():
     assert X_train.shape == (60000, 28, 28)
     assert X_test.shape == (10000, 28, 28)
 
-    network.add(Layer(neurons_count=16,activation=Relu,input_shape=[28,28]))
-    network.add(Layer(neurons_count=16, activation=Relu))
-    network.add(Layer(neurons_count=10, activation=Linear))
+    network.add(Dense(neurons_count=32,activation=Relu,input_shape=[28,28]))
+    network.add(Dense(neurons_count=16, activation=Relu))
+    network.add(Dense(neurons_count=10, activation=Linear))
     network.compile(loss=SquareError(),optimizer=Adam(), metric=Accuracy())
     print(y_test[0:6])
     print(network.predict(X_test[:5]))

@@ -26,8 +26,8 @@ class SGD(Optimizer):
         y_pred = a[-1]
         delta = y_pred - target
 
-        delta[delta < 0] = -1
-        delta[delta > 0] = 1
+        # delta[delta < 0] = -1
+        # delta[delta > 0] = 1
 
         delta = delta * loss
 
@@ -69,8 +69,8 @@ class RMSProp(Optimizer):
         y_pred = a[-1]
         delta = y_pred - target
 
-        delta[delta < 0] = -1
-        delta[delta > 0] = 1
+        # delta[delta < 0] = -1
+        # delta[delta > 0] = 1
 
         delta = delta * loss
 
@@ -115,8 +115,8 @@ class Adam(Optimizer):
         y_pred = a[-1]
         delta = y_pred - target
 
-        delta[delta < 0] = -1
-        delta[delta > 0] = 1
+        # delta[delta < 0] = -1
+        # delta[delta > 0] = 1
 
         delta = delta * loss
 
